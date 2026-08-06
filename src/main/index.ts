@@ -473,6 +473,31 @@ app.whenReady().then(async () => {
     })
   })
 
+  // Answer HTTP basic-auth challenges in web/browser nodes. Electron has no auth prompt, so a
+  // site behind basic auth (e.g. a self-hosted app behind Caddy) otherwise renders as a silent
+  // blank node. Credentials live OUTSIDE the repo in <userData>/web-auth.json:
+  //   { "bunny.example.com": { "username": "u", "password": "p" },
+  //     "*.example.com":     { "username": "u", "password": "p" } }
+  // Exact host match wins over a wildcard suffix; no entry → challenge is cancelled (stock
+  // behavior). The file is re-read per challenge — they're rare, and edits apply live.
+  app.on('login', (event, _contents, _request, authInfo, callback) => {
+    if (authInfo.isProxy) return
+    event.preventDefault()
+    readFile(join(app.getPath('userData'), 'web-auth.json'), 'utf8')
+      .then((raw) => {
+        const table = JSON.parse(raw) as Record<string, { username: string; password: string }>
+        const host = authInfo.host
+        const cred =
+          table[host] ??
+          Object.entries(table).find(
+            ([key]) => key.startsWith('*.') && (host === key.slice(2) || host.endsWith(key.slice(1)))
+          )?.[1]
+        if (cred?.username) callback(cred.username, cred.password)
+        else callback()
+      })
+      .catch(() => callback())
+  })
+
   settingsStore.init()
   settingsStore.registerIpc()
   sshStore.registerIpc()

@@ -29,8 +29,8 @@
     "postinstall": "electron-rebuild -f -w node-pty,smart-whisper"
   },
   "build": {
-    "appId": "com.nodeterm.app",
-    "productName": "nodeterm",
+    "appId": "com.abhishek.infinite",
+    "productName": "Infinite",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -95,10 +95,6 @@
           ]
         }
       ]
-    },
-    "publish": {
-      "provider": "generic",
-      "url": "https://nodeterm.dev/updates"
     }
   },
   "dependencies": {

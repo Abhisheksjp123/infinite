@@ -44,6 +44,11 @@ export function initUpdater(onBeforeRestart?: () => void): void {
     return
   }
 
+  // Infinite fork: auto-update disabled. Upstream's feed (nodeterm.dev/updates) would silently
+  // replace this patched build with stock nodeterm. Updates ship by rebuilding the fork.
+  ipcMain.on(IPC.appCheckForUpdates, () => send(IPC.appUpdateNotAvailable))
+  return
+
   // A Linux .deb/.rpm install (no APPIMAGE env) cannot self-install and would re-download the
   // full AppImage every 6h only to throw on install. Degrade to a manual-download link: don't
   // auto-download; surface update-available with `manual: true` so the card shows a Download link.
